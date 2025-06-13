@@ -1,0 +1,67 @@
+// src/styles/_forms.scss
+form {
+    display: flex; // Usamos flexbox
+    flex-wrap: wrap; // Permite que os itens quebrem a linha
+    gap: 0.8rem; // Espaçamento entre os itens (label/input)
+  
+    // Este estilo fará com que cada label/input formem um par e fiquem lado a lado
+    // Vamos agrupar label e input em uma div para controle
+    div.form-field { // Nova classe para agrupar label e input
+      display: flex;
+      flex-direction: column; // Label em cima, input embaixo
+      flex: 1 1 calc(50% - 0.4rem); // Ocupa metade da largura, considerando o gap
+      min-width: 120px; // Largura mínima para evitar que fiquem muito apertados em telas pequenas
+  
+      // Para telas maiores, garantir que 2 fiquem por linha.
+      @media (min-width: 500px) { // Ajuste este breakpoint conforme necessário para seu design
+          flex: 1 1 calc(50% - 0.4rem); // Dois campos por linha
+      }
+      @media (min-width: 768px) { // E aqui para mais de dois, se houver espaço
+          // Ex: 3 campos por linha para alguns campos, ou 2 para outros
+          // Vamos manter 2 por linha para simplicidade e compactação inicial
+      }
+    }
+  
+    label {
+      font-weight: bold;
+      margin-bottom: 0.1rem;
+      color: $text-color;
+      font-size: 0.9rem;
+    }
+  
+    input[type="text"],
+    input[type="number"],
+    input[type="date"] {
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      width: 100%; // Ocupa a largura da sua div.form-field pai
+      box-sizing: border-box;
+  
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
+        box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+      }
+    }
+  
+    button[type="submit"] {
+      background-color: $primary-color;
+      color: $header-footer-text;
+      padding: 0.7rem 1.2rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 0.5rem;
+      width: auto; // O botão não vai mais ocupar 100% da linha
+      align-self: flex-end; // Alinha o botão à direita (se houver espaço)
+      // Se quiser que o botão ocupe a linha inteira em mobile:
+      @media (max-width: 499px) {
+          width: 100%;
+          align-self: auto;
+      }
+    }
+  }

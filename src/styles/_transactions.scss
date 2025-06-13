@@ -1,0 +1,87 @@
+// src/styles/_transactions.scss
+.transaction-list {
+    margin-top: 1.5rem;
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+  
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  
+      // Agrupa os detalhes do item para facilitar o layout com o botão
+      .item-details {
+          display: flex;
+          flex-grow: 1;
+          flex-wrap: wrap; // Permite quebrar linha em telas pequenas
+          gap: 0.5rem 1rem; // Espaçamento entre os spans
+          justify-content: space-between; // Distribui o espaço
+          align-items: center;
+  
+          @media (min-width: $breakpoint-mobile / 2) { // Ajuste para telas um pouco maiores que mobile estreito
+              flex-wrap: nowrap; // Impede quebra de linha
+              justify-content: flex-start; // Alinha à esquerda
+          }
+      }
+  
+      .description {
+        font-weight: bold;
+        flex-basis: 100%; // Ocupa a linha toda em telas pequenas
+        @media (min-width: $breakpoint-mobile / 2) {
+            flex-basis: auto; // Volta ao normal
+            flex-grow: 1; // Ocupa o espaço restante
+        }
+      }
+      .value {
+        font-weight: bold;
+        text-align: right;
+        min-width: 80px;
+        color: $text-color;
+      }
+      .date {
+        font-size: 0.8rem;
+        color: #777;
+        text-align: right;
+        min-width: 80px;
+      }
+  
+      .delete-button {
+        background-color: #f44336; // Vermelho
+        color: white;
+        border: none;
+        border-radius: 50%; // Botão circular
+        width: 25px;
+        height: 25px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        margin-left: 1rem; // Espaçamento à esquerda do botão
+  
+        &:hover {
+          background-color: darken(#f44336, 10%);
+        }
+      }
+    }
+  
+    .expense-item {
+      background-color: lighten($expense-color, 45%);
+      color: darken($expense-color, 20%);
+      border-left: 5px solid $expense-color;
+    }
+  
+    .income-item {
+      background-color: lighten($income-color, 45%);
+      color: darken($income-color, 20%);
+      border-left: 5px solid $income-color;
+    }
+  }

@@ -1,0 +1,22 @@
+@import './styles/_variables.scss';
+@import './styles/_forms.scss';
+@import './styles/_transactions.scss';
+// Reset básico e estilos globais
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  line-height: 1.6;
+  color: $text-color; // Estas variáveis agora serão injetadas
+  background-color: $background-color;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
