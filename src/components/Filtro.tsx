@@ -1,4 +1,3 @@
-import React from 'react';
 import { generateYears, months } from '../utils/dateHelpers'; // Importa do utilitário
 
 interface FiltroProps {

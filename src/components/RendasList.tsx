@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { auth, db } from '../firebaseConfig';
+import { db } from '../firebaseConfig';
 import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore'; // Adicionado 'where'
 import { getMonthDateRangeStrings } from '../utils/dateHelpers'; // Importa para o filtro de mês
 
