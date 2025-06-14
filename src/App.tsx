@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.scss';
 import DespesasForm from './components/Despesas';
 import RendasForm from './components/Rendas';
@@ -9,7 +9,6 @@ import Auth from './components/Auth';
 import { auth, db } from './firebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, onSnapshot } from 'firebase/firestore';
-import { generateYears } from './utils/dateHelpers';
 
 function App() {
   const [user, setUser] = useState<any | null>(null);
