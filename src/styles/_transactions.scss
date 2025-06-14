@@ -5,62 +5,119 @@
       list-style: none;
       padding: 0;
     }
-  
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.8rem 1rem;
-      margin-bottom: 0.5rem;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  
-      // Agrupa os detalhes do item para facilitar o layout com o botão
-      .item-details {
-          display: flex;
-          flex-grow: 1;
-          flex-wrap: wrap; // Permite quebrar linha em telas pequenas
-          gap: 0.5rem 1rem; // Espaçamento entre os spans
-          justify-content: space-between; // Distribui o espaço
-          align-items: center;
-  
-          @media (min-width: $breakpoint-mobile / 2) { // Ajuste para telas um pouco maiores que mobile estreito
-              flex-wrap: nowrap; // Impede quebra de linha
-              justify-content: flex-start; // Alinha à esquerda
-          }
-      }
-  
-      .description {
-        font-weight: bold;
-        flex-basis: 100%; // Ocupa a linha toda em telas pequenas
-        @media (min-width: $breakpoint-mobile / 2) {
-            flex-basis: auto; // Volta ao normal
-            flex-grow: 1; // Ocupa o espaço restante
+    
+    // Estilo para o item da lista contendo o botão de excluir
+    // Movido para dentro de .transaction-list para maior especificidade
+    .income-item, .expense-item {
+        display: flex;
+        flex-direction: column; // Começa como coluna para mobile
+        justify-content: space-between;
+        align-items: flex-start; // Alinha os itens à esquerda
+        padding: 1rem;
+        margin-bottom: 0.5rem; // Mantido o espaçamento entre os itens
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        
+        // Estilos específicos de cor e borda para income/expense
+        &.expense-item {
+            background-color: lighten($expense-color, 45%);
+            color: darken($expense-color, 20%);
+            border-left: 5px solid $expense-color;
         }
-      }
-      .value {
-        font-weight: bold;
-        text-align: right;
-        min-width: 80px;
-      }
-      .date {
-        font-size: 0.8rem;
-        color: #777;
-        text-align: right;
-        min-width: 80px;
-      }
+        
+        &.income-item {
+            background-color: lighten($income-color, 45%);
+            color: darken($income-color, 20%);
+            border-left: 5px solid $income-color;
+        }
+
+        @media (min-width: $breakpoint-mobile) {
+            flex-direction: row; // Volta para linha em telas maiores
+            align-items: center; // Centraliza verticalmente
+        }
     }
-  
-    .expense-item {
-      background-color: lighten($expense-color, 45%);
-      color: darken($expense-color, 20%);
-      border-left: 5px solid $expense-color;
+
+    .item-details {
+        display: flex;
+        flex-grow: 1;
+        flex-wrap: wrap; // Permite quebrar linha em telas pequenas
+        gap: 0.5rem 1rem; // Espaçamento entre os spans
+        width: 100%; // Garante que ocupe a largura total disponível antes do botão
+        
+        @media (min-width: $breakpoint-mobile) {
+            flex-wrap: nowrap; // Impede quebra de linha em telas maiores
+            justify-content: flex-start; // Alinha à esquerda
+            width: auto; // Deixa o flexbox gerenciar a largura
+        }
+        
+        span {
+            margin-bottom: 0.2rem; // Espaçamento entre os detalhes
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+        .description {
+            font-weight: bold;
+            flex-basis: 100%; // Ocupa a linha toda em telas pequenas
+            @media (min-width: $breakpoint-mobile) {
+                flex-basis: auto; // Volta ao normal
+                flex-grow: 1; // Ocupa o espaço restante
+            }
+        }
+        .value {
+            font-weight: bold;
+            text-align: left; // Alinhar à esquerda para consistência
+            min-width: 80px;
+            @media (min-width: $breakpoint-mobile) {
+              text-align: right; // Alinha à direita no desktop
+            }
+        }
+        .date {
+            font-size: 0.8rem;
+            color: #777;
+            text-align: left; // Alinhar à esquerda para consistência
+            min-width: 80px;
+            @media (min-width: $breakpoint-mobile) {
+              text-align: right; // Alinha à direita no desktop
+            }
+        }
+        .category { // Estilo para a categoria (se exibida)
+            font-size: 0.85rem;
+            color: #777;
+            font-style: italic;
+        }
     }
-  
-    .income-item {
-      background-color: lighten($income-color, 45%);
-      color: darken($income-color, 20%);
-      border-left: 5px solid $income-color;
+
+    // --- Estilização do Botão de Excluir ---
+    .delete-button {
+        background-color: $expense-color; // Cor vermelha para indicar exclusão
+        color: #fff; // Texto branco
+        border: none;
+        border-radius: 6px; // Cantos arredondados
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        margin-left: 0; // Removido margin-left para mobile
+        margin-top: 1rem; // Espaçamento superior para mobile
+        flex-shrink: 0; // Impede que o botão encolha
+        width: 100%; // Ocupa a largura total em mobile
+        
+        @media (min-width: $breakpoint-mobile) {
+            margin-left: 10px; // Espaçamento à esquerda do item
+            margin-top: 0; // Remove margem superior em desktop
+            width: auto; // Volta à largura automática
+        }
+
+        &:hover {
+            background-color: darken($expense-color, 10%); // Escurece um pouco ao passar o mouse
+            transform: translateY(-1px); // Pequeno efeito de elevação
+        }
+
+        &:active {
+            background-color: darken($expense-color, 15%); // Fica mais escuro ao clicar
+            transform: translateY(0); // Volta à posição original
+        }
     }
-  }
+}

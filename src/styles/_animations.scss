@@ -1,0 +1,56 @@
+// src/styles/_animations.scss
+
+// Define a animação de fade-in e slide-up para a seção de resumo mensal
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Aplica a animação ao container dos cards mensais
+.monthly-summary-animated {
+  display: flex; /* Garante que os cards internos continuem em flexbox */
+  flex-wrap: wrap; /* Permite quebrar linha */
+  gap: 1.5rem; /* Espaçamento entre os cards */
+  justify-content: space-around; /* Distribui os cards */
+  width: 100%; /* Ocupa a largura total disponível */
+
+  animation: fadeInSlideUp 0.6s ease-out forwards; /* Aplica a animação */
+
+  // Ajustes responsivos para os cards dentro deste container
+  .summary-card {
+    flex: 1 1 calc(33% - 1rem); // 3 cards por linha no desktop
+    min-width: 250px; // Largura mínima para mobile
+
+    @media (max-width: $breakpoint-tablet) {
+      flex: 1 1 calc(50% - 1rem); // 2 cards por linha em tablet
+    }
+
+    @media (max-width: $breakpoint-mobile) {
+      flex: 1 1 100%; // 1 card por linha em mobile
+    }
+  }
+}
+
+// Define a animação para o dropdown (fade-in e slide-down)
+@keyframes dropdownFadeInSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px); /* Começa um pouco acima da posição final */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Classe para aplicar a animação aos conteúdos do dropdown
+.dropdown-content-animated {
+  animation: dropdownFadeInSlideDown 0.4s ease-out forwards; /* Aplica a animação */
+  // O 'forwards' garante que o estado final da animação seja mantido
+}

@@ -5,13 +5,8 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // Fun
 function Rendas() {
   const [description, setDescription] = useState('');
   const [value, setValue] = useState('');
-  const [date, setDate] = useState(''); // ESTADO PARA A DATA
+  const [date, setDate] = useState(''); // ESTADO PARA A DATA (ex: "YYYY-MM-DD")
   const [message, setMessage] = useState(''); // Para mensagens de sucesso/erro
-
-  // Removemos handleFocus e handleBlur
-  // const [isActive, setIsActive] = useState(false);
-  // const handleFocus = () => setIsActive(true);
-  // const handleBlur = () => setIsActive(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +22,24 @@ function Rendas() {
       setMessage('Por favor, insira um valor válido e positivo.');
       return;
     }
-    // Adicionamos a verificação para o campo 'date' também
+    
     if (!description || !date) {
         setMessage('Por favor, preencha todos os campos.');
         return;
+    }
+
+    // Extrair ano e mês da string de data (YYYY-MM-DD)
+    let year;
+    let month;
+    if (date) {
+      const dateParts = date.split('-'); // Divide a string "YYYY-MM-DD"
+      year = parseInt(dateParts[0]); // Pega o ano como número
+      month = dateParts[1]; // Pega o mês como string (ex: "01", "12")
+    } else {
+      // Fallback para o ano e mês atuais se a data estiver vazia (embora 'required' deva evitar isso)
+      const today = new Date();
+      year = today.getFullYear();
+      month = (today.getMonth() + 1).toString().padStart(2, '0');
     }
 
     try {
@@ -40,7 +49,9 @@ function Rendas() {
       await addDoc(userIncomesCollectionRef, {
         description,
         value: incomeValue,
-        date, // <--- **CERTIFIQUE-SE DE QUE ESTA LINHA ESTÁ AQUI**
+        date, // Mantém a data completa se desejar
+        year: year,   // Adiciona o ano como um campo separado (número)
+        month: month, // Adiciona o mês como um campo separado (string "MM")
         createdAt: serverTimestamp() // Adiciona um timestamp para ordenação
       });
 
@@ -57,7 +68,6 @@ function Rendas() {
 
   return (
     <div>
-      {/* A classe 'income-focused' é aplicada ao <form> para estilizar o input em foco. */}
       <div className="form-container">
         <form onSubmit={handleSubmit} className="income-focused">
           <div className="form-field">
@@ -67,7 +77,6 @@ function Rendas() {
               id="income-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              // onFocus e onBlur removidos
               required
             />
           </div>
@@ -80,7 +89,6 @@ function Rendas() {
               step="0.01"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              // onFocus e onBlur removidos
               required
             />
           </div>
@@ -90,9 +98,8 @@ function Rendas() {
             <input
               type="date"
               id="income-date"
-              value={date} // <--- **CERTIFIQUE-SE DE QUE ESTÁ LIGADO AO ESTADO 'date'**
-              onChange={(e) => setDate(e.target.value)} // <--- **E ESTÁ ATUALIZANDO 'date'**
-              // onFocus e onBlur removidos
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
               required
             />
           </div>

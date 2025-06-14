@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
-import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore'; // Adicionado 'where'
-import { getMonthDateRangeStrings } from '../utils/dateHelpers'; // Importa para o filtro de mês
+import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
+// getMonthDateRangeStrings não é mais necessário, pois usaremos os campos 'year' e 'month'
+// import { getMonthDateRangeStrings } from '../utils/dateHelpers';
 
 interface Income {
   id: string;
@@ -9,21 +10,23 @@ interface Income {
   value: number;
   date: string; // Formato YYYY-MM-DD
   createdAt: any; // Firebase Timestamp
+  year?: number; // Adicionado para a nova lógica de filtro
+  month?: string; // Adicionado para a nova lógica de filtro
 }
 
 interface RendasListProps {
   user: any; // Add user prop
   selectedYear: number;
   selectedMonth: string; // 'all' ou 'MM' (ex: '06')
+  onDeleteItem: (collectionName: string, itemId: string) => void; // Adicione a prop onDeleteItem
 }
 
-function RendasList({ user, selectedYear, selectedMonth }: RendasListProps) { // Receive user prop
+function RendasList({ user, selectedYear, selectedMonth, onDeleteItem }: RendasListProps) { // Receive onDeleteItem prop
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // This effect now depends on the 'user' prop from App.tsx
     if (!user) {
       setIncomes([]);
       setLoading(false);
@@ -37,27 +40,25 @@ function RendasList({ user, selectedYear, selectedMonth }: RendasListProps) { //
     const incomesCollectionRef = collection(db, `users/${user.uid}/incomes`); // Use user.uid from prop
     let q;
 
-    // Lógica de filtragem por ano e mês
+    // Lógica de filtragem por ano e mês (agora usando os campos 'year' e 'month')
     if (selectedMonth === 'all') {
-      // Filtra apenas por ano: datas entre 'YYYY-01-01' e 'YYYY+1-01-01' (exclusivo)
+      // Para o filtro 'all' (todos os meses do ano selecionado)
+      // Presume que 'year' está presente e é um número
       q = query(
         incomesCollectionRef,
-        where('date', '>=', `${selectedYear}-01-01`),
-        where('date', '<', `${selectedYear + 1}-01-01`),
-        orderBy('date', 'desc'), // Ordena pela data para a consulta de range
-        orderBy('createdAt', 'desc') // Sub-ordem para desempate
+        where('year', '==', selectedYear),
+        orderBy('date', 'desc'), // Ordena pela data completa
+        orderBy('createdAt', 'desc') // Sub-ordena pelo timestamp de criação
       );
     } else {
       // Filtra por ano e mês específicos
-      const monthNum = parseInt(selectedMonth);
-      const { startOfMonthString, startOfNextMonthString } = getMonthDateRangeStrings(selectedYear, monthNum);
-
+      // Presume que 'year' é um número e 'month' é uma string "MM"
       q = query(
         incomesCollectionRef,
-        where('date', '>=', startOfMonthString),
-        where('date', '<', startOfNextMonthString),
-        orderBy('date', 'desc'), // Ordena pela data para a consulta de range
-        orderBy('createdAt', 'desc') // Sub-ordem para desempate
+        where('year', '==', selectedYear),
+        where('month', '==', selectedMonth),
+        orderBy('date', 'desc'), // Ordena pela data completa
+        orderBy('createdAt', 'desc') // Sub-ordena pelo timestamp de criação
       );
     }
 
@@ -86,8 +87,8 @@ function RendasList({ user, selectedYear, selectedMonth }: RendasListProps) { //
   }
 
   return (
-    <div>
-      <h2>Minhas Rendas</h2>
+    <div className="rendas-list-container"> {/* Adicione um container para melhor estilização */}
+      <h2>Minhas Rendas ({selectedMonth === 'all' ? selectedYear : `${selectedMonth}/${selectedYear}`})</h2>
       <div className="transaction-list">
         {incomes.length > 0 ? (
           <ul>
@@ -98,6 +99,13 @@ function RendasList({ user, selectedYear, selectedMonth }: RendasListProps) { //
                   <span className="value">R$ {income.value.toFixed(2)}</span>
                   <span className="date">{income.date}</span>
                 </div>
+                {/* Botão de Excluir */}
+                <button
+                  className="delete-button"
+                  onClick={() => onDeleteItem('incomes', income.id)} // Chama onDeleteItem passando 'incomes' e o ID
+                >
+                  Excluir
+                </button>
               </li>
             ))}
           </ul>
