@@ -1,67 +1,100 @@
 // src/styles/_forms.scss
+
+@import './variables.scss'; // Garanta que as variáveis estão importadas
+
+// Estilos gerais para todos os forms
 form {
-    display: flex; // Usamos flexbox
-    flex-wrap: wrap; // Permite que os itens quebrem a linha
-    gap: 0.8rem; // Espaçamento entre os itens (label/input)
-  
-    // Este estilo fará com que cada label/input formem um par e fiquem lado a lado
-    // Vamos agrupar label e input em uma div para controle
-    div.form-field { // Nova classe para agrupar label e input
-      display: flex;
-      flex-direction: column; // Label em cima, input embaixo
-      flex: 1 1 calc(50% - 0.4rem); // Ocupa metade da largura, considerando o gap
-      min-width: 120px; // Largura mínima para evitar que fiquem muito apertados em telas pequenas
-  
-      // Para telas maiores, garantir que 2 fiquem por linha.
-      @media (min-width: 500px) { // Ajuste este breakpoint conforme necessário para seu design
-          flex: 1 1 calc(50% - 0.4rem); // Dois campos por linha
-      }
-      @media (min-width: 768px) { // E aqui para mais de dois, se houver espaço
-          // Ex: 3 campos por linha para alguns campos, ou 2 para outros
-          // Vamos manter 2 por linha para simplicidade e compactação inicial
-      }
+  display: flex;
+  flex-wrap: wrap; // Permite que os itens quebrem a linha
+  gap: 1rem; // Espaçamento entre os itens (label/input)
+
+  // Estilos para o grupo de label e input
+  div.form-field {
+    display: flex;
+    flex-direction: column; // Label em cima, input embaixo
+    
+    // Em telas maiores, dois campos por linha.
+    // Calculado para caber dentro da largura máxima do formulário (que é ~280px)
+    flex: 1 1 calc(50% - 0.5rem); // Ocupa metade da largura, considerando o gap
+    min-width: 120px; // Largura mínima para evitar que fiquem muito apertados
+
+    // Em telas muito pequenas, forçar uma coluna para legibilidade
+    @media (max-width: 350px) { // Ajuste este breakpoint conforme o seu layout
+        flex: 1 1 100%; // Ocupa a largura total
     }
-  
+
     label {
       font-weight: bold;
-      margin-bottom: 0.1rem;
+      margin-bottom: 0.3rem; // Pequeno espaço entre label e input
       color: $text-color;
-      font-size: 0.9rem;
+      font-size: 1rem; // Aumentado para melhor legibilidade
     }
-  
+
     input[type="text"],
     input[type="number"],
     input[type="date"] {
-      padding: 0.6rem;
+      padding: 0.8rem; // Aumentado para um tamanho mais confortável
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 0.9rem;
+      font-size: 1rem; // Aumentado para melhor legibilidade
       width: 100%; // Ocupa a largura da sua div.form-field pai
-      box-sizing: border-box;
-  
+      box-sizing: border-box; // Garante que padding e borda não aumentem a largura total
+
+      transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+
       &:focus {
         outline: none;
-        border-color: $primary-color;
-        box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
-      }
-    }
-  
-    button[type="submit"] {
-      background-color: $primary-color;
-      color: $header-footer-text;
-      padding: 0.7rem 1.2rem;
-      border: none;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      margin-top: 0.5rem;
-      width: auto; // O botão não vai mais ocupar 100% da linha
-      align-self: flex-end; // Alinha o botão à direita (se houver espaço)
-      // Se quiser que o botão ocupe a linha inteira em mobile:
-      @media (max-width: 499px) {
-          width: 100%;
-          align-self: auto;
+        box-shadow: 0 0 0 2px rgba($primary-color, 0.2); // Sombra padrão ao focar
       }
     }
   }
+
+  button[type="submit"] {
+    background-color: $primary-color;
+    color: white;
+    padding: 0.8rem 1.5rem; // Aumentado o padding
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem; // Aumentado o tamanho da fonte
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 1rem;
+    width: 100%; // Faz o botão ocupar a largura total
+    
+    &:hover {
+      background-color: darken($primary-color, 10%);
+    }
+  }
+
+  .form-message {
+    font-size: 0.9rem;
+    margin-top: 0.8rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    color: $text-color;
+    background-color: lighten($primary-color, 60%);
+    text-align: center;
+    flex: 1 1 100%; // Ocupa a largura total
+  }
+}
+
+// Estilos para o contêiner do formulário (para a borda externa que não muda com o foco)
+.form-container {
+  padding: 0;
+  border: 2px solid transparent; // Borda transparente por padrão
+  border-radius: 8px;
+  transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+/* Classes para as bordas de foco nos inputs (aplicadas ao <form> pai) */
+.expense-focused input:focus {
+    border-color: $expense-color; // Vermelho para despesas
+    box-shadow: 0 0 0 2px rgba($expense-color, 0.3);
+}
+
+.income-focused input:focus {
+    border-color: $income-color; // Verde para rendas
+    box-shadow: 0 0 0 2px rgba($income-color, 0.3);
+}

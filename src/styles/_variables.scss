@@ -7,7 +7,8 @@ $header-footer-bg: #212529; // Cinza escuro
 $header-footer-text: #fff;
 
 // Breakpoints
-$breakpoint-mobile: 768px;
+$breakpoint-tablet: 768px; // Um breakpoint comum para tablets
+$breakpoint-mobile: 480px; // Um breakpoint comum para celulares
 $breakpoint-tablet: 1024px;
 $breakpoint-desktop: 1200px;
 

@@ -43,33 +43,12 @@
         font-weight: bold;
         text-align: right;
         min-width: 80px;
-        color: $text-color;
       }
       .date {
         font-size: 0.8rem;
         color: #777;
         text-align: right;
         min-width: 80px;
-      }
-  
-      .delete-button {
-        background-color: #f44336; // Vermelho
-        color: white;
-        border: none;
-        border-radius: 50%; // Botão circular
-        width: 25px;
-        height: 25px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        margin-left: 1rem; // Espaçamento à esquerda do botão
-  
-        &:hover {
-          background-color: darken(#f44336, 10%);
-        }
       }
     }
   

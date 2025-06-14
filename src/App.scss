@@ -1,6 +1,7 @@
 @import './styles/_variables.scss';
 @import './styles/_forms.scss';
 @import './styles/_transactions.scss';
+@import './styles/_auth.scss';
 
 .app-container {
   display: flex;
@@ -26,6 +27,49 @@
 
   @media (min-width: $breakpoint-mobile) {
     padding: 1rem 2rem;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.5rem; // Espaço acima da info do usuário
+
+    p {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    .logout-button {
+      background-color: $secondary-color; // Ou outra cor que combine
+      color: $header-footer-text;
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: darken($secondary-color, 10%);
+      }
+    }
+  }
+
+  @media (min-width: $breakpoint-mobile) {
+    padding: 1rem 2rem;
+    // Ajustar para alinhar à direita no desktop
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h1 {
+      text-align: left;
+    }
+    .user-info {
+      margin-top: 0; // Remove a margem superior em desktop
+    }
   }
 }
 
@@ -58,6 +102,46 @@
     gap: 2rem;
   }
 
+  .summary-and-filter-wrapper {
+    display: flex; /* Habilita o Flexbox */
+    flex-wrap: wrap; /* Permite que os itens quebrem para a linha de baixo em telas pequenas */
+    justify-content: space-between; /* Empurra os itens para as extremidades (totais esquerda, filtro direita) */
+    align-items: flex-start; /* Alinha os itens ao topo do contêiner */
+    gap: 2rem; /* Espaço entre a seção de totais e a seção de filtro */
+    margin-bottom: 2rem; /* Espaço abaixo deste grupo de seções */
+  
+    @media (max-width: $breakpoint-tablet) {
+      flex-direction: column; /* Em telas menores, empilha os itens verticalmente */
+      align-items: stretch; /* Faz com que eles ocupem a largura total disponível quando empilhados */
+      gap: 1.5rem; /* Ajusta o espaçamento quando empilhado */
+    }
+  }
+  
+  // Ajustes para a seção de totais financeiros
+  .financial-summary-section {
+    flex: 2; /* Permite que ocupe mais espaço que o filtro (proporção 2 para 1) */
+    // O 'display: flex' e 'flex-wrap' para os cards internos já deve estar aqui
+    // Remova qualquer 'margin-bottom' que existisse no topo desta seção, pois o wrapper já cuida do espaçamento vertical.
+    margin-bottom: 0; // Sobrescreve o margin-bottom anterior se existir
+  }
+  
+  // Ajustes para a seção de filtro
+  .filter-section {
+    flex: 1; /* Permite que ocupe menos espaço que os totais (proporção 1 para 2) */
+    max-width: 350px; /* Limita a largura máxima para não ficar muito largo em telas grandes */
+    min-width: 280px; /* Garante uma largura mínima */
+    width: 100%; /* Importante para que ele ocupe 100% da largura quando empilhado em telas pequenas */
+    // Remova qualquer 'margin-bottom' que existisse no topo desta seção.
+    margin-bottom: 0; // Sobrescreve o margin-bottom anterior se existir
+  
+    // Mantenha seus estilos de card para o filtro (background, border, padding, shadow)
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+
   .summary-card {
     background-color: #fff;
     border: 1px solid #ddd;
@@ -80,9 +164,8 @@
     }
 
     &.current-balance p.balance-value {
-      font-size: 1.8rem;
+      font-size: 1.4rem;
       font-weight: bold;
-      color: $primary-color;
     }
   }
 }
@@ -113,6 +196,7 @@
         border-radius: 4px;
         font-size: 1rem;
         min-width: 150px;
+        margin-left: 10px;
     }
   }
 }
@@ -219,3 +303,163 @@
     }
   }
 }
+.error-message {
+  color: #f44336; // Vermelho para mensagens de erro
+  text-align: center;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.financial-summary-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  font-size: 1.4rem;
+
+  .summary-card {
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    flex: 1 1 calc(33% - 1rem); // 3 cards por linha no desktop
+    min-width: 250px; // Largura mínima para mobile
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 0.8rem;
+      color: $primary-color;
+    }
+
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 0.4rem;
+      color: $text-color;
+    }
+
+    .total-value {
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: $text-color;
+    }
+  }
+
+  .current-balance {
+    background-color: lighten($primary-color, 45%); // Fundo mais claro para o saldo
+    border-color: lighten($primary-color, 30%);
+
+    .balance-value {
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin-top: 0.5rem;
+    }
+    .positive-balance {
+      color: $income-color; // Verde
+    }
+    .negative-balance {
+      color: $expense-color; // Vermelho
+    }
+  }
+
+  @media (max-width: $breakpoint-tablet) {
+    .summary-card {
+      flex: 1 1 calc(50% - 1rem); // 2 cards por linha em tablet
+    }
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    .summary-card {
+      flex: 1 1 100%; // 1 card por linha em mobile
+    }
+  }
+}
+
+/* src/App.scss - Adicione ou ajuste estas regras */
+
+.transaction-forms-section {
+  display: flex;
+  flex-direction: column; /* Padrão para telas menores: um abaixo do outro */
+  gap: 20px; /* Espaço entre os dropdowns */
+  margin-bottom: 30px;
+  background-color: transparent; /* Transparente para remover o fundo branco */
+  padding: 0; /* Removendo o padding da seção */
+  border-radius: 0; /* Removendo o border-radius */
+  box-shadow: none; /* Removendo a sombra da seção */
+
+  @media (min-width: 768px) { /* Para tablets e desktops: lado a lado */
+    flex-direction: row; /* Coloca os dropdowns lado a lado */
+    justify-content: space-between; /* Distribui o espaço entre eles */
+    align-items: flex-start; /* Alinha ao topo */
+    gap: 2rem; /* Espaço entre os formulários lado a lado */
+  }
+}
+
+.form-dropdown {
+  border: none; /* REMOVIDO: a borda */
+  border-radius: 0; /* REMOVIDO: border-radius para não parecer um card/botão */
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  flex: 1;
+  min-width: 280px;
+  box-shadow: none; /* REMOVIDO: a sombra do dropdown individual */
+  background-color: transparent; /* REMOVIDO: fundo branco do dropdown em si */
+}
+
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0; /* REMOVIDO: o padding do header para torná-lo mais compacto */
+  background-color: transparent; /* REMOVIDO: o fundo cinza claro do header */
+  cursor: pointer;
+  border-bottom: none; /* REMOVIDO: a borda inferior do header */
+
+  &:hover {
+    background-color: transparent; /* Garante que não haja fundo ao passar o mouse */
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #333;
+    padding: 15px 20px; /* Adicionado padding ao h2 para o espaçamento visual */
+    border-radius: 8px; /* MANTIDO: arredondamento para o header */
+    flex-grow: 1; /* Permite que o h2 ocupe o espaço disponível */
+    display: flex; /* Para centralizar o texto se houver mais espaço */
+    align-items: center;
+    justify-content: space-between; /* Ajustado para espaço entre h2 e ícone */
+  }
+
+  /* Estilo do ícone de seta */
+  .fi-rr-angle-small-down {
+    font-size: 1.5em;
+    transition: transform 0.3s ease-in-out;
+    margin-left: 10px; /* Espaço entre o título e a seta */
+    border-radius: 8px; /* MANTIDO: arredondamento para a seta */
+    padding: 15px; /* Adicionado padding para a seta para alinhamento */
+  }
+
+  /* Rotação da seta quando o dropdown estiver aberto */
+  .fi-rr-angle-small-down.rotated {
+    transform: rotate(180deg);
+  }
+}
+
+.dropdown-content {
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0; /* Adicionado borda ao conteúdo para separá-lo do resto */
+  border-radius: 8px; /* Arredondamento apenas nas bordas inferiores */
+}
+
+/* Estilo dos formulários dentro do dropdown */
+form { /* Referência direta ao elemento form dentro do dropdown-content */
+  padding: 0;
+  box-shadow: none;
+  border: none;
+}
+
+
