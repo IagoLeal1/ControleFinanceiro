@@ -54,3 +54,58 @@
   animation: dropdownFadeInSlideDown 0.4s ease-out forwards; /* Aplica a animação */
   // O 'forwards' garante que o estado final da animação seja mantido
 }
+
+/* --- Novas Animações de Transição de Página --- */
+
+// Animação para a entrada da página (fade-in e slide-up sutil)
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Animação para a saída da página (fade-out e slide-down sutil)
+@keyframes pageFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+// Classe para o container da página que entra
+.page-enter-active {
+    animation: pageFadeIn 0.5s ease-out forwards;
+}
+
+// Classe para o container da página que sai (será controlada pelo React)
+.page-exit-active {
+    animation: pageFadeOut 0.5s ease-in forwards;
+    position: absolute; /* Essencial para que a página saindo não afete o layout da que entra */
+    width: 100%;
+}
+
+/* --- Animação para Títulos (ajustada para um fade-in e slide-up mais suave) --- */
+@keyframes titleFadeInUp { /* Renomeada a keyframe */
+    from {
+        opacity: 0;
+        transform: translateY(20px); /* Começa mais para baixo */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animated-title {
+    animation: titleFadeInUp 0.8s ease-out 0.1s forwards; /* Ajustei duração e atraso */
+    opacity: 0; /* Começa invisível para que a animação funcione */
+}

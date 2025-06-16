@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
-// Certifique-se de que getMonthDateRangeStrings está disponível ou implemente-o se necessário
-// import { getMonthDateRangeStrings } from '../utils/dateHelpers';
 
 interface Expense {
   id: string;
@@ -11,59 +9,58 @@ interface Expense {
   category: string;
   date: string; // Formato YYYY-MM-DD
   createdAt: any; // Firebase Timestamp
-  // Adicione year e month se eles forem parte da sua estrutura de dados agora
   year?: number;
   month?: string;
 }
 
 interface DespesasListProps {
-  user: any; // Add user prop
+  user: any;
   selectedYear: number;
   selectedMonth: string; // 'all' ou 'MM' (ex: '06')
-  onDeleteItem: (collectionName: string, itemId: string) => void; // Adicione a prop onDeleteItem
+  selectedCategory: string; // Nova prop para a categoria selecionada
+  onDeleteItem: (collectionName: string, itemId: string) => void;
 }
 
-function DespesasList({ user, selectedYear, selectedMonth, onDeleteItem }: DespesasListProps) { // Receive onDeleteItem prop
+function DespesasList({ user, selectedYear, selectedMonth, selectedCategory, onDeleteItem }: DespesasListProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // This effect now depends on the 'user' prop from App.tsx
     if (!user) {
       setExpenses([]);
       setLoading(false);
       setError("Faça login para ver suas despesas.");
-      return; // Exit if no user
+      return;
     }
 
-    setLoading(true); // Reinicia o loading ao mudar o usuário ou filtros
+    setLoading(true);
     setError(null);
 
-    const expensesCollectionRef = collection(db, `users/${user.uid}/expenses`); // Use user.uid from prop
+    const expensesCollectionRef = collection(db, `users/${user.uid}/expenses`);
     let q;
 
-    // Lógica de filtragem por ano e mês
-    // Ajustado para usar os campos 'year' e 'month' que agora devem estar no Firestore
-    // se você seguiu as instruções anteriores para Despesas.tsx
-    if (selectedMonth === 'all') {
-      // Para o filtro 'all' (todos os meses do ano selecionado)
-      q = query(
-        expensesCollectionRef,
-        where('year', '==', selectedYear),
-        orderBy('date', 'desc'), // Ordena pela data completa
-        orderBy('createdAt', 'desc') // Sub-ordena pelo timestamp de criação
-      );
-    } else {
-      // Para um mês específico
-      q = query(
-        expensesCollectionRef,
-        where('year', '==', selectedYear),
-        where('month', '==', selectedMonth),
-        orderBy('date', 'desc'), // Ordena pela data completa
-        orderBy('createdAt', 'desc') // Sub-ordena pelo timestamp de criação
-      );
+    // Constrói a query base para ano e mês
+    let baseQuery = [
+      where('year', '==', selectedYear)
+    ];
+
+    if (selectedMonth !== 'all') {
+      baseQuery.push(where('month', '==', selectedMonth));
     }
+
+    // Adiciona o filtro por categoria SE uma categoria específica for selecionada
+    if (selectedCategory !== 'all') {
+      baseQuery.push(where('category', '==', selectedCategory));
+    }
+
+    // Cria a query completa com todas as condições e ordenação
+    q = query(
+      expensesCollectionRef,
+      ...baseQuery, // Aplica todas as condições 'where' dinamicamente
+      orderBy('date', 'desc'),
+      orderBy('createdAt', 'desc')
+    );
 
     const unsubscribeFirestore = onSnapshot(q, (snapshot) => {
       const expensesData: Expense[] = snapshot.docs.map(doc => ({
@@ -78,8 +75,8 @@ function DespesasList({ user, selectedYear, selectedMonth, onDeleteItem }: Despe
       setLoading(false);
     });
 
-    return () => unsubscribeFirestore(); // Cleanup Firestore listener
-  }, [user, selectedYear, selectedMonth]); // Dependencies include user prop and filter states
+    return () => unsubscribeFirestore();
+  }, [user, selectedYear, selectedMonth, selectedCategory]); // Adiciona selectedCategory às dependências
 
   if (loading) {
     return <p>Carregando despesas...</p>;
@@ -90,8 +87,10 @@ function DespesasList({ user, selectedYear, selectedMonth, onDeleteItem }: Despe
   }
 
   return (
-    <div className="despesas-list-container"> {/* Adicione um container para melhor estilização */}
-      <h2>Minhas Despesas ({selectedMonth === 'all' ? selectedYear : `${selectedMonth}/${selectedYear}`})</h2>
+    <div className="despesas-list-container">
+      <h2>Minhas Despesas ({selectedMonth === 'all' ? selectedYear : `${selectedMonth}/${selectedYear}`}
+        {selectedCategory !== 'all' ? ` - ${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}` : ''})
+      </h2>
       <div className="transaction-list">
         {expenses.length > 0 ? (
           <ul>
@@ -101,12 +100,11 @@ function DespesasList({ user, selectedYear, selectedMonth, onDeleteItem }: Despe
                   <span className="description">{expense.description}</span>
                   <span className="value">R$ {expense.value.toFixed(2)}</span>
                   <span className="date">{expense.date}</span>
-                  <span className="category">({expense.category})</span> {/* Exibindo a categoria */}
+                  {expense.category && <span className="category">({expense.category.charAt(0).toUpperCase() + expense.category.slice(1)})</span>}
                 </div>
-                {/* Botão de Excluir */}
                 <button
                   className="delete-button"
-                  onClick={() => onDeleteItem('expenses', expense.id)} // Chama onDeleteItem passando 'expenses' e o ID
+                  onClick={() => onDeleteItem('expenses', expense.id)}
                 >
                   Excluir
                 </button>

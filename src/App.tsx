@@ -6,51 +6,57 @@ import Filtro from './components/Filtro';
 import DespesasList from './components/DespesasList';
 import RendasList from './components/RendasList';
 import Auth from './components/Auth';
-import { auth, db } from './firebaseConfig'; // Assuming firebaseConfig exports auth and db
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, onSnapshot, where, doc, deleteDoc } from 'firebase/firestore'; // Adicionado doc e deleteDoc
+import InvestmentsPage from './components/InvestmentsPage'; // Novo componente para a página de investimentos
+import { auth, db } from './firebaseConfig';
+import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
+import { collection, query, onSnapshot, where, doc, deleteDoc } from 'firebase/firestore';
 
 function App() {
-  // State for user authentication
-  const [user, setUser] = useState(null);
+  // Estado para autenticação do usuário
+  const [user, setUser] = useState<User | null>(null);
 
-  // States for overall financial summary (all time)
+  // Estado para gerenciar a página atual: 'dashboard' ou 'investments'
+  const [currentPage, setCurrentPage] = useState('dashboard'); // 'dashboard' como página inicial
+
+  // Estados para o resumo financeiro geral (todo o período)
   const [overallExpenses, setOverallExpenses] = useState(0);
   const [overallIncomes, setOverallIncomes] = useState(0);
   const [overallBalance, setOverallBalance] = useState(0);
 
-  // Get current year and month for initial filter state
+  // Obtém o ano e mês atuais para o estado inicial do filtro
   const currentYear = new Date().getFullYear();
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
 
-  // States for filter selection
+  // Estados para seleção de filtro (ano, mês, categoria)
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  // O filtro de mês pode ser 'all' ou um número string formatado "MM"
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // States for monthly financial summary (filtered by selected month/year)
+  // Estados para o resumo financeiro mensal (filtrado por mês/ano selecionado)
   const [monthlyExpenses, setMonthlyExpenses] = useState(0);
   const [monthlyIncomes, setMonthlyIncomes] = useState(0);
   const [monthlyBalance, setMonthlyBalance] = useState(0);
 
-  // States to control form visibility
+  // Estados para controlar a visibilidade dos formulários (dropdowns)
   const [showDespesasForm, setShowDespesasForm] = useState(false);
   const [showRendasForm, setShowRendasForm] = useState(false);
 
-  // Effect to listen for authentication state changes
+  // Efeito para escutar mudanças no estado de autenticação
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      // Reset filter to current month/year when user logs in/out
+      // Reseta o filtro para o mês/ano atual e categoria 'all' ao logar/deslogar
       setSelectedYear(currentYear);
       setSelectedMonth(currentMonth);
+      setSelectedCategory('all');
+      // Volta para a dashboard ao logar/deslogar
+      setCurrentPage('dashboard'); 
     });
-    return () => unsubscribe(); // Cleanup subscription on unmount
-  }, [currentYear, currentMonth]); // Re-run if currentYear/Month changes (unlikely for practical purposes)
+    return () => unsubscribe();
+  }, [currentYear, currentMonth]);
 
-  // Effect to fetch and calculate overall (all-time) expenses and incomes
+  // Efeito para buscar e calcular despesas e rendas gerais (todo o período)
   useEffect(() => {
-    // If no user is logged in, reset totals and exit
     if (!user) {
       setOverallExpenses(0);
       setOverallIncomes(0);
@@ -62,7 +68,6 @@ function App() {
     const expensesCollectionRef = collection(db, `users/${userId}/expenses`);
     const incomesCollectionRef = collection(db, `users/${userId}/incomes`);
 
-    // Subscribe to overall expenses (no filter)
     const unsubscribeOverallExpenses = onSnapshot(query(expensesCollectionRef), (snapshot) => {
       let currentTotal = 0;
       snapshot.forEach(doc => {
@@ -73,7 +78,6 @@ function App() {
       console.error("Erro ao carregar totais gerais de despesas:", error);
     });
 
-    // Subscribe to overall incomes (no filter)
     const unsubscribeOverallIncomes = onSnapshot(query(incomesCollectionRef), (snapshot) => {
       let currentTotal = 0;
       snapshot.forEach(doc => {
@@ -84,16 +88,14 @@ function App() {
       console.error("Erro ao carregar totais gerais de rendas:", error);
     });
 
-    // Cleanup overall subscriptions on unmount or user change
     return () => {
       unsubscribeOverallExpenses();
       unsubscribeOverallIncomes();
     };
-  }, [user]); // Re-run when user changes
+  }, [user]);
 
-  // Effect to calculate monthly expenses and incomes based on selected year/month
+  // Efeito para calcular despesas e rendas mensais com base no ano/mês selecionado
   useEffect(() => {
-    // If no user is logged in, reset monthly totals and exit
     if (!user) {
       setMonthlyExpenses(0);
       setMonthlyIncomes(0);
@@ -105,9 +107,7 @@ function App() {
     const expensesCollectionRef = collection(db, `users/${userId}/expenses`);
     const incomesCollectionRef = collection(db, `users/${userId}/incomes`);
 
-    // Only fetch monthly data if a specific month is selected
     if (selectedMonth !== 'all') {
-      // Create queries for selected month and year
       const monthlyExpensesQuery = query(
         expensesCollectionRef,
         where("year", "==", selectedYear),
@@ -120,7 +120,6 @@ function App() {
         where("month", "==", selectedMonth)
       );
 
-      // Subscribe to monthly expenses
       const unsubscribeMonthlyExpenses = onSnapshot(monthlyExpensesQuery, (snapshot) => {
         let currentMonthlyTotal = 0;
         snapshot.forEach(doc => {
@@ -131,7 +130,6 @@ function App() {
         console.error("Erro ao carregar totais mensais de despesas:", error);
       });
 
-      // Subscribe to monthly incomes
       const unsubscribeMonthlyIncomes = onSnapshot(monthlyIncomesQuery, (snapshot) => {
         let currentMonthlyTotal = 0;
         snapshot.forEach(doc => {
@@ -142,32 +140,28 @@ function App() {
         console.error("Erro ao carregar totais mensais de rendas:", error);
       });
 
-      // Cleanup monthly subscriptions on unmount or filter/user change
       return () => {
         unsubscribeMonthlyExpenses();
         unsubscribeMonthlyIncomes();
       };
     } else {
-      // If 'all' months are selected, set monthly totals to 0
       setMonthlyExpenses(0);
       setMonthlyIncomes(0);
       setMonthlyBalance(0);
     }
+  }, [user, selectedYear, selectedMonth]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, selectedYear, selectedMonth]); // Re-run when user, year, or month changes
-
-  // Effect to update overall balance when overall expenses/incomes change
+  // Efeito para atualizar o saldo geral
   useEffect(() => {
     setOverallBalance(overallIncomes - overallExpenses);
   }, [overallIncomes, overallExpenses]);
 
-  // Effect to update monthly balance when monthly expenses/incomes change
+  // Efeito para atualizar o saldo mensal
   useEffect(() => {
     setMonthlyBalance(monthlyIncomes - monthlyExpenses);
   }, [monthlyIncomes, monthlyExpenses]);
 
-  // Handle user logout
+  // Função para lidar com o logout do usuário
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -178,8 +172,8 @@ function App() {
     }
   };
 
-  // Function to delete an item from Firestore
-  const handleDeleteItem = async (collectionName, itemId) => {
+  // Função para deletar um item do Firestore
+  const handleDeleteItem = async (collectionName: string, itemId: string) => {
     if (!user) {
       console.error("Usuário não autenticado para deletar item.");
       return;
@@ -193,14 +187,18 @@ function App() {
     }
   };
 
-  // Handle year filter change
-  const handleYearChange = (year) => {
+  // Funções para lidar com mudanças nos filtros
+  const handleYearChange = (year: number) => {
     setSelectedYear(year);
   };
 
-  // Handle month filter change
-  const handleMonthChange = (month) => {
+  const handleMonthChange = (month: string) => {
     setSelectedMonth(month);
+    setSelectedCategory('all');
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
   };
 
   return (
@@ -220,98 +218,125 @@ function App() {
           <Auth />
         ) : (
           <>
-            <div className="summary-and-filter-wrapper">
-              <section className="financial-summary-section">
-                {/* Overall Totals */}
-                <div className="summary-card">
-                  <h2>Despesas Totais (Geral)</h2>
-                  <p className="total-value">R$ {overallExpenses.toFixed(2)}</p>
-                </div>
-                <div className="summary-card">
-                  <h2>Rendas Totais (Geral)</h2>
-                  <p className="total-value">R$ {overallIncomes.toFixed(2)}</p>
-                </div>
-                <div className="summary-card current-balance">
-                  <h2>Saldo Geral</h2>
-                  <p className={`balance-value ${overallBalance < 0 ? 'negative-balance' : 'positive-balance'}`}>
-                    R$ {overallBalance.toFixed(2)}
-                  </p>
-                </div>
+            {/* Botões de navegação entre as páginas */}
+            <nav className="main-nav">
+              <button
+                className={`nav-button ${currentPage === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setCurrentPage('dashboard')}
+              >
+                Dashboard Financeira
+              </button>
+              <button
+                className={`nav-button ${currentPage === 'investments' ? 'active' : ''}`}
+                onClick={() => setCurrentPage('investments')}
+              >
+                Meus Investimentos
+              </button>
+            </nav>
 
-                {/* Monthly Totals - Rendered conditionally with animation class */}
-                {selectedMonth !== 'all' && (
-                  <div className="monthly-summary-animated"> {/* Este div já tem a animação */}
-                    <div className="summary-card monthly-summary-card">
-                      <h2>Despesas Mensais</h2>
-                      <p className="total-value">R$ {monthlyExpenses.toFixed(2)}</p>
+            {/* Renderização condicional da página atual */}
+            {currentPage === 'dashboard' && (
+              <>
+                <div className="summary-and-filter-wrapper">
+                  <section className="financial-summary-section">
+                    {/* Overall Totals */}
+                    <div className="summary-card">
+                      <h2>Despesas Totais (Geral)</h2>
+                      <p className="total-value">R$ {overallExpenses.toFixed(2)}</p>
                     </div>
-                    <div className="summary-card monthly-summary-card">
-                      <h2>Rendas Mensais</h2>
-                      <p className="total-value">R$ {monthlyIncomes.toFixed(2)}</p>
+                    <div className="summary-card">
+                      <h2>Rendas Totais (Geral)</h2>
+                      <p className="total-value">R$ {overallIncomes.toFixed(2)}</p>
                     </div>
-                    <div className="summary-card current-balance monthly-summary-card">
-                      <h2>Saldo Mensal</h2>
-                      <p className={`balance-value ${monthlyBalance < 0 ? 'negative-balance' : 'positive-balance'}`}>
-                        R$ {monthlyBalance.toFixed(2)}
+                    <div className="summary-card current-balance">
+                      <h2>Saldo Geral</h2>
+                      <p className={`balance-value ${overallBalance < 0 ? 'negative-balance' : 'positive-balance'}`}>
+                        R$ {overallBalance.toFixed(2)}
                       </p>
                     </div>
-                  </div>
-                )}
-              </section>
 
-              <section className="filter-section">
-                <Filtro
-                  selectedYear={selectedYear}
-                  selectedMonth={selectedMonth}
-                  onYearChange={handleYearChange}
-                  onMonthChange={handleMonthChange}
-                />
-              </section>
-            </div>
+                    {/* Monthly Totals - Rendered conditionally with animation class */}
+                    {selectedMonth !== 'all' && (
+                      <div className="monthly-summary-animated">
+                        <div className="summary-card monthly-summary-card">
+                          <h2>Despesas Mensais</h2>
+                          <p className="total-value">R$ {monthlyExpenses.toFixed(2)}</p>
+                        </div>
+                        <div className="summary-card monthly-summary-card">
+                          <h2>Rendas Mensais</h2>
+                          <p className="total-value">R$ {monthlyIncomes.toFixed(2)}</p>
+                        </div>
+                        <div className="summary-card current-balance monthly-summary-card">
+                          <h2>Saldo Mensal</h2>
+                          <p className={`balance-value ${monthlyBalance < 0 ? 'negative-balance' : 'positive-balance'}`}>
+                            R$ {monthlyBalance.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </section>
 
-            {/* Transaction Forms Section with Dropdown */}
-            <section className="transaction-forms-section">
-              {/* New Expense Dropdown */}
-              <div className="form-dropdown">
-                <div className="dropdown-header" onClick={() => setShowDespesasForm(!showDespesasForm)}>
-                  <h2>Nova Despesa</h2>
-                  <i className={`fi fi-rr-angle-small-down ${showDespesasForm ? 'rotated' : ''}`}></i>
+                  <section className="filter-section">
+                    <Filtro
+                      user={user}
+                      selectedYear={selectedYear}
+                      selectedMonth={selectedMonth}
+                      selectedCategory={selectedCategory}
+                      onYearChange={handleYearChange}
+                      onMonthChange={handleMonthChange}
+                      onCategoryChange={handleCategoryChange}
+                    />
+                  </section>
                 </div>
-                {showDespesasForm && (
-                  <div className="dropdown-content dropdown-content-animated"> {/* Adicionada classe de animação */}
-                    <DespesasForm />
-                  </div>
-                )}
-              </div>
 
-              {/* New Income Dropdown */}
-              <div className="form-dropdown">
-                <div className="dropdown-header" onClick={() => setShowRendasForm(!showRendasForm)}>
-                  <h2>Nova Renda</h2>
-                  <i className={`fi fi-rr-angle-small-down ${showRendasForm ? 'rotated' : ''}`}></i>
-                </div>
-                {showRendasForm && (
-                  <div className="dropdown-content dropdown-content-animated"> {/* Adicionada classe de animação */}
-                    <RendasForm />
+                <section className="transaction-forms-section">
+                  <div className="form-dropdown">
+                    <div className="dropdown-header" onClick={() => setShowDespesasForm(!showDespesasForm)}>
+                      <h2>Nova Despesa</h2>
+                      <i className={`fi fi-rr-angle-small-down ${showDespesasForm ? 'rotated' : ''}`}></i>
+                    </div>
+                    {showDespesasForm && (
+                      <div className="dropdown-content dropdown-content-animated">
+                        <DespesasForm />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </section>
 
-            <section className="transaction-lists-section">
-              <DespesasList
-                user={user}
-                selectedYear={selectedYear}
-                selectedMonth={selectedMonth}
-                onDeleteItem={handleDeleteItem} // Pass the delete function
-              />
-              <RendasList
-                user={user}
-                selectedYear={selectedYear}
-                selectedMonth={selectedMonth}
-                onDeleteItem={handleDeleteItem} // Pass the delete function
-              />
-            </section>
+                  <div className="form-dropdown">
+                    <div className="dropdown-header" onClick={() => setShowRendasForm(!showRendasForm)}>
+                      <h2>Nova Renda</h2>
+                      <i className={`fi fi-rr-angle-small-down ${showRendasForm ? 'rotated' : ''}`}></i>
+                    </div>
+                    {showRendasForm && (
+                      <div className="dropdown-content dropdown-content-animated">
+                        <RendasForm />
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                <section className="transaction-lists-section">
+                  <DespesasList
+                    user={user}
+                    selectedYear={selectedYear}
+                    selectedMonth={selectedMonth}
+                    selectedCategory={selectedCategory}
+                    onDeleteItem={handleDeleteItem}
+                  />
+                  <RendasList
+                    user={user}
+                    selectedYear={selectedYear}
+                    selectedMonth={selectedMonth}
+                    onDeleteItem={handleDeleteItem}
+                  />
+                </section>
+              </>
+            )}
+
+            {/* Renderiza a página de investimentos se currentPage for 'investments' */}
+            {currentPage === 'investments' && (
+              <InvestmentsPage user={user} />
+            )}
           </>
         )}
       </main>
